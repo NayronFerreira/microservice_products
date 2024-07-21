@@ -37,7 +37,7 @@ jobs:
     # Extrai a versão a partir da tag (se o push for uma tag) para usar como parte do nome da imagem
     - name: Extract version
       id: extract_version
-      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
     # Step 5: Build and push Docker image
     # Constrói a imagem Docker e faz o push para o Docker Hub com duas tags:
@@ -50,9 +50,9 @@ jobs:
         push: true  # Habilita o push da imagem para o Docker Hub
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
-          ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ env.version }}
+          ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ env.VERSION }}
 
     # Step 6: Image digest
     # Mostra o digest da imagem criada (hash único que identifica a imagem)
     - name: Image digest
-      run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"
+      run: echo "Image Digest: ${{ steps.build-and-push.outputs.digest }}"

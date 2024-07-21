@@ -2,14 +2,23 @@ name: Docker Image CI
 
 on:
   push:
+    branches:
+    - main
     tags:
     - 'v*'
 
 jobs:
-  build:
+  checkout_code:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    environment: DockerHub # Especifica o ambiente onde os secrets estão configurados
+  build_and_push:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: DockerHub
 
     steps:
     - name: Checkout code
@@ -23,7 +32,7 @@ jobs:
 
     - name: Build and Push to Docker Hub
       run: |
-        docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER
-        docker tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
-        docker push ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER
-        docker push ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "Building Docker image with tag: $TAG_NAME"
+        docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:${TAG_NAME}
+        docker push ${{ secrets.DOCKER_USERNAME }}/microservice_products:${TAG_NAME}

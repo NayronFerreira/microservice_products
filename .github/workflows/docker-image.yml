@@ -1,6 +1,6 @@
 name: Docker Image CI
 
-# Define quando o workflow deve ser acionado: 
+# Define quando o workflow deve ser acionado:
 # - Em pushs para a branch 'main'
 # - Quando tags são criadas
 on:
@@ -28,7 +28,7 @@ jobs:
     # Step 3: Log in to Docker Hub
     # Faz login no Docker Hub usando as credenciais armazenadas nos secrets
     - name: Log in to Docker Hub
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2 # Usando a versão mais recente da action
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
@@ -37,7 +37,7 @@ jobs:
     # Extrai a versão a partir da tag (se o push for uma tag) para usar como parte do nome da imagem
     - name: Extract version
       id: extract_version
-      run: echo ::set-output name=version::${GITHUB_REF#refs/tags/}
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
     # Step 5: Build and push Docker image
     # Constrói a imagem Docker e faz o push para o Docker Hub com duas tags:
@@ -50,10 +50,10 @@ jobs:
         push: true # Habilita o push da imagem para o Docker Hub
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
-          ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ steps.extract_version.outputs.version }}
+          ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ env.version }}
 
     # Step 6: Image digest
     # Mostra o digest da imagem criada (hash único que identifica a imagem)
     - name: Image digest
       id: digest
-      run: echo ${{ steps.build_and_push.outputs.digest }}
+      run: echo ${{ steps.build-and-push.outputs.digest }}

@@ -7,13 +7,14 @@ on:
     branches: [main]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
+    environment: DockerHub # Especifica o ambiente onde os secrets estão configurados
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Docker Login - Docker Hub
       uses: docker/login-action@v2
@@ -21,7 +22,7 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build e Push no Docker Hub
+    - name: Build and Push to Docker Hub
       run: |
         docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER
         docker tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest

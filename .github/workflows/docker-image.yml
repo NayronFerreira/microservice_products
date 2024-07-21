@@ -40,16 +40,19 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       # Step 5: Build and push Docker image
+      # Constrói a imagem Docker e faz o push para o Docker Hub com duas tags:
+      # - latest: para a versão mais recente
+      # - version: a versão extraída da tag
       - name: Build and push Docker image
-        id: build_and_push
         uses: docker/build-push-action@v4
         with:
-          context: .
-          push: true
+          context: .  # Define o contexto do build (diretório atual)
+          push: true  # Habilita o push da imagem para o Docker Hub
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
             ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ env.VERSION }}
 
       # Step 6: Image digest
+      # Mostra o digest da imagem criada (hash único que identifica a imagem)
       - name: Image digest
         run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"

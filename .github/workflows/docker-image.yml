@@ -1,58 +1,29 @@
 name: Docker Image CI
 
-# Define quando o workflow deve ser acionado:
-# - Em pushs para a branch 'main'
-# - Quando tags são criadas
 on:
   push:
-    branches:
-      - main
-    tags:
-      - '*'
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
+
   build:
-    runs-on: ubuntu-latest  # Define o ambiente onde o job será executado
+
+    runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
-      # Faz o checkout do código fonte do repositório para o diretório de trabalho
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      # Step 2: Set up Docker Buildx
-      # Configura o Docker Buildx para builds mais eficientes e multi-plataforma
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Docker Login - Docker Hub
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Log in to Docker Hub
-      # Faz login no Docker Hub usando as credenciais armazenadas nos secrets
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Step 4: Extract version
-      # Extrai a versão a partir da tag (se o push for uma tag) para usar como parte do nome da imagem
-      - name: Extract version
-        id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      # Step 5: Build and push Docker image
-      # Constrói a imagem Docker e faz o push para o Docker Hub com duas tags:
-      # - latest: para a versão mais recente
-      # - version: a versão extraída da tag
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .  # Define o contexto do build (diretório atual)
-          push: true  # Habilita o push da imagem para o Docker Hub
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
-            ${{ secrets.DOCKER_USERNAME }}/microservice_products:${{ env.VERSION }}
-
-      # Step 6: Image digest
-      # Mostra o digest da imagem criada (hash único que identifica a imagem)
-      - name: Image digest
-        run: echo "Image Digest: ${{ steps.build-and-push.outputs.digest }}"
+    - name: Build e Push no Docker Hub
+      run: |
+        docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER
+        docker tag ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/microservice_products:$GITHUB_RUN_NUMBER
+        docker push ${{ secrets.DOCKER_USERNAME }}/microservice_products:latest

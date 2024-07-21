@@ -55,4 +55,4 @@ jobs:
       # Step 6: Image digest
       # Mostra o digest da imagem criada (hash único que identifica a imagem)
       - name: Image digest
-        run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"
+        run: echo "Image Digest: ${{ steps.build-and-push.outputs.digest }}"

@@ -51,5 +51,6 @@ func (s Server) createHandlers(productRepo *database.ProductRepository) []Handle
 		handlers.NewUpdateProductHandler(productRepo),
 		handlers.NewGetProductByIDHandler(productRepo),
 		handlers.NewDeleteProductHandler(productRepo),
+		handlers.NewHealthCheckHandler(),
 	}
 }

@@ -10,7 +10,7 @@ import (
 
 func SetupDB(config *configs.Config) (*sql.DB, error) {
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, "information_schema")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, "information_schema")
 
 	db, err := sql.Open(config.DBDriver, dsn)
 	if err != nil {
@@ -21,7 +21,7 @@ func SetupDB(config *configs.Config) (*sql.DB, error) {
 		return nil, err
 	}
 
-	dsn = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBName)
+	dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
 
 	db, err = sql.Open(config.DBDriver, dsn)
 	if err != nil {

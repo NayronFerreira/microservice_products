@@ -9,8 +9,21 @@ import (
 )
 
 func SetupDB(config *configs.Config) (*sql.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, "information_schema")
+
 	db, err := sql.Open(config.DBDriver, dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = createDatabaseIfNotExists(db, config.DBName); err != nil {
+		return nil, err
+	}
+
+	dsn = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", config.DBUser, config.DBPassword, config.DBHost, config.DBName)
+
+	db, err = sql.Open(config.DBDriver, dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -22,12 +35,12 @@ func SetupDB(config *configs.Config) (*sql.DB, error) {
 	return db, nil
 }
 
-func setupTables(db *sql.DB, config *configs.Config) error {
-	_, err := db.Exec("CREATE DATABASE IF NOT EXISTS " + config.DBName)
-	if err != nil {
-		return err
-	}
+func createDatabaseIfNotExists(db *sql.DB, dbName string) error {
+	_, err := db.Exec("CREATE DATABASE IF NOT EXISTS " + dbName)
+	return err
+}
 
+func setupTables(db *sql.DB, config *configs.Config) error {
 	query := fmt.Sprintf(`
     CREATE TABLE IF NOT EXISTS %s (
         id VARCHAR(255) PRIMARY KEY,
@@ -36,9 +49,8 @@ func setupTables(db *sql.DB, config *configs.Config) error {
         code VARCHAR(50) NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         color VARCHAR(50) NOT NULL
-    );
-    `, config.DBTable)
+    );`, config.DBTable)
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
